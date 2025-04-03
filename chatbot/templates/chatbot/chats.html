@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+  {% include 'chatbot/include/head.html' %}
+
+  <body>
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
+      {% include 'chatbot/include/aside.html' %}
+      <div class="body-wrapper">
+        {% include 'chatbot/include/header.html' %}
+        <div class="main-container">
+          <!-- Main Column -->
+          <div class="left-column">
+            <div class="row p-2">
+              <div class="card p-4">
+                <h2 class="mb-4">Chat Sessions for {{ company.name }}</h2>
+                <table class="table table-bordered table-hover">
+                  <thead class="table-primary">
+                    <tr>
+                      <th>User ID (Session ID)</th>
+                      <th>Last Interaction</th>
+                      <th>Chat Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for session in sessions %}
+                      <tr>
+                        <td>{{ session.session_id }}</td>
+                        <td>{{ session.last_interaction|date:'Y-m-d H:i:s' }}</td>
+                        <td>{{ session.chat_status }}</td>
+                        <td>
+                          <a href="{% url 'session_chat' session.session_id %}" class="btn btn-sm btn-primary">View Chat</a>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="4" class="text-center text-muted">No chat sessions found</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          {% include 'chatbot/include/main-sellmate.html' %}
+        </div>
+        <!-- Main ended here -->
+      </div>
+      {% include 'chatbot/include/footerScript.html' %}
+    </div>
+  </body>
+</html>

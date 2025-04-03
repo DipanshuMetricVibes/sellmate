@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+{% load static%}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metric Vibes Chatbot</title>
+    <link rel="stylesheet" href="{% static 'chatbot/company-chatbot.css' %}">
+    <!-- Add this before your scripts -->
+    {% csrf_token %}
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="header" id="chatbotHeader"></div>
+      <div class="messages" id="messages"></div>
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="bubble">
+          <div class="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="text" id="userInput" placeholder="Type your message here..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script>
+
+      function formatBotResponse(response) {     
+        // Fix line breaks
+        response = response.replace(/(?:\r\n|\r|\n)/g, '<br>');
+    
+        // Handle bullet points and lists
+        response = response.replace(/^\* /gm, '• ');
+        response = response.replace(/^- /gm, '• ');
+        response = response.replace(/•\s/g, '<br>• ');
+    
+        // Handle bold text (**text**)
+        response = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+        // Handle italicized/emphasized text (*text*)
+        response = response.replace(/\*(?!\*)(.*?)\*/g, '<em>$1</em>'); 
+    
+        // Handle markdown-style links [text](url)
+        response = response.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        });
+    
+        return response;
+    }
+    
+      // Update the sendMessage function
+      async function sendMessage() {
+        const userInput = document.getElementById('userInput').value;
+        if (!userInput) return;
+
+        // Clear input field immediately
+        document.getElementById('userInput').value = '';
+        
+        const messagesDiv = document.getElementById('messages');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Add user message
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        const sanitizedInput = userInput.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        userMessage.innerHTML = `<div class="bubble">${sanitizedInput}</div>`;
+        messagesDiv.appendChild(userMessage);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        // Show typing indicator
+        typingIndicator.style.display = 'flex';
+
+        // Get the company name from the current URL
+        const companyName = window.location.pathname.split('/')[1];
+
+        try {
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Send message to the server
+            const response = await fetch(`/${companyName}/chat/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: new URLSearchParams({
+                    message: userInput,
+                    csrfmiddlewaretoken: csrfToken
+                }),
+                credentials: 'include'  // Important for CSRF
+            });
+
+            const data = await response.json();
+
+            // Hide typing indicator
+            typingIndicator.style.display = 'none';
+
+            // Add bot response
+            if (data.response) {
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                const formattedResponse = formatBotResponse(data.response);
+                botMessage.innerHTML = `<div class="bubble">${formattedResponse}</div>`;
+                messagesDiv.appendChild(botMessage);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            typingIndicator.style.display = 'none';
+        }
+
+        // Clear input field
+        document.getElementById('userInput').value = '';
+      }
+
+      // Update getCookie function to be more robust
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+      }
+
+      // Add event listener for Enter key
+      document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
+        }
+      });
+
+      // Fetch chat history on page load
+      window.onload = function () {
+        // Get the company name from the current URL and format it
+        const companyName = window.location.pathname.split('/')[1];
+        const formattedCompanyName = decodeURIComponent(companyName)
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+
+        // Set the formatted company name in the header
+        document.getElementById('chatbotHeader').textContent = `${formattedCompanyName} Chatbot`;
+
+        // Fetch chat history
+        fetch(`/${companyName}/chat/`, { method: 'GET' })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.chat_history) {
+              const chatBox = document.getElementById('messages');
+              data.chat_history.forEach((chat) => {
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user';
+                userMessage.innerHTML = `<div class="bubble">You: ${chat.user_message}</div>`;
+                chatBox.appendChild(userMessage);
+      
+                const botResponse = document.createElement('div');
+                botResponse.className = 'message bot';
+                botResponse.innerHTML = `<div class="bubble">${formatBotResponse(chat.bot_response)}</div>`;
+                chatBox.appendChild(botResponse);
+              });
+            }
+          });
+      }
+    </script>
+  </body>
+</html>

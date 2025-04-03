@@ -1,0 +1,59 @@
+{% load static %}
+<aside class="left-sidebar">
+  <!-- Sidebar scroll -->
+  <div>
+    <div class="brand-logo d-flex align-items-center justify-content-between">
+      {% comment %} <a href="./index.html" class="text-nowrap logo-img"><img src="{% static 'chatbot/images/logos/dark-logo.svg' %}" width="180" alt="" /></a> {% endcomment %}
+      <h1><b>SellMate AI</b></h1>
+      <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+        <i class="ti ti-x fs-8"></i>
+      </div>
+    </div>
+    <!-- Sidebar navigation -->
+    <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+      <ul id="sidebarnav">
+        <li class="nav-small-cap">
+          <i class="ti ti-home nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Home</span>
+        </li>
+        <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'dashboard' %}" aria-expanded="false">
+            <span><i class="ti ti-layout-dashboard"></i></span>
+            <span class="hide-menu">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-small-cap">
+          <i class="ti ti-building nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Company</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="{% url 'companies' %}" aria-expanded="false">
+            <span><i class="ti ti-list"></i></span>
+            <span class="hide-menu">All Companies</span>
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
+            <span><i class="ti ti-plus"></i></span>
+            <span class="hide-menu">New Company</span>
+          </a>
+        </li>
+        <li class="nav-small-cap">
+          <i class="ti ti-user nav-small-cap-icon fs-4"></i>
+          <span class="hide-menu">Account</span>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
+            <span><i class="ti ti-user-circle"></i></span>
+            <span class="hide-menu">Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-item mt-4">
+          <a href="./authentication-login.html" class="btn btn-outline-primary mt-2 w-100">Logout</a>
+        </li>
+      </ul>
+    </nav>
+    <!-- End Sidebar navigation -->
+  </div>
+  <!-- End Sidebar scroll -->
+</aside>

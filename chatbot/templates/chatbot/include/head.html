@@ -1,0 +1,38 @@
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SELLMATE AI - Your company Salesman Builder</title>
+    {% comment %} <link rel="shortcut icon" type="image/png" href="{% static 'chatbot/images/logos/favicon.png' %}" /> {% endcomment %}
+    <link rel="stylesheet" href="{% static 'chatbot/css/styles.min.css' %}" />
+</head>
+<style>
+    .main-container {
+      display: flex;
+      height: 100vh; /* Full viewport height */
+      overflow: hidden; /* Prevent scrolling on the main container */
+      padding-top: calc(70px + 1px);
+    }
+    
+    .left-column {
+      flex: 1; /* Takes up remaining space */
+      overflow-y: auto; /* Enable vertical scrolling */
+      padding: 20px;
+      background-color: #f8f9fa; /* Light background for the left column */
+    }
+    
+    .right-column {
+      width: 400px; /* Default width for the right column */
+      overflow-y: auto; /* Enable vertical scrolling */ 
+      background-color: #ffffff; /* White background for the right column */
+      border-left: 1px solid #ddd; /* Add a subtle border between columns */
+      resize: horizontal; /* Allow horizontal resizing */
+      overflow: auto; /* Ensure content is scrollable */
+    }
+    
+    .resizer {
+      width: 5px;
+      cursor: ew-resize;
+      background-color: #ddd;
+    }
+  </style>

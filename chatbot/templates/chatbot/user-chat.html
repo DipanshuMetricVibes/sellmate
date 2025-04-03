@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+  {% include 'chatbot/include/head.html' %}
+
+  <link rel="stylesheet" href="{% static 'chatbot/user-chat-dashboard.css' %}">
+  <body>
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
+      {% include 'chatbot/include/aside.html' %}
+      <div class="body-wrapper">
+        {% include 'chatbot/include/header.html' %}
+        <div class="main-container">
+          <!-- Main Column -->
+          <div class="left-column">
+            <div class="row p-2">
+              <div class="card p-4">
+                <h2 class="mb-4">Chat History for Session {{ session_id }}</h2>
+                <div class="chat-container">
+                  <div class="messages">
+                    {% for chat in chats %}
+                      <div class="user-chat-message user">
+                        <div class="user-chat-bubble">{{ chat.user_message }}</div>
+                      </div>
+                      <div class="user-chat-message bot">
+                        <div class="user-chat-bubble" id="bot-response-{{ forloop.counter }}">
+                        {{ chat.bot_response|safe }}
+                        </div>
+                      </div>
+                    {% empty %}
+                      <div class="text-center text-muted">No messages found for this session</div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% include 'chatbot/include/main-sellmate.html' %}
+        </div>
+        <!-- Main ended here -->
+      </div>
+      {% include 'chatbot/include/footerScript.html' %}
+    </div>
+  </body>
+
+  <script>
+// Function to format bot responses
+    function formatBotResponse(response) {     
+      // Fix line breaks
+      response = response.replace(/(?:\r\n|\r|\n)/g, '<br>');
+  
+      // Handle bullet points and lists
+      response = response.replace(/^\* /gm, '• ');
+      response = response.replace(/^- /gm, '• ');
+      response = response.replace(/•\s/g, '<br>• ');
+  
+      // Handle bold text (**text**)
+      response = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+      // Handle italicized/emphasized text (*text*)
+      response = response.replace(/\*(?!\*)(.*?)\*/g, '<em>$1</em>'); 
+  
+      // Handle markdown-style links [text](url)
+      response = response.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      });
+  
+      return response;
+  }
+
+    // Apply formatting to all bot responses
+    document.addEventListener('DOMContentLoaded', () => {
+      const botResponses = document.querySelectorAll('.user-chat-message.bot .user-chat-bubble');
+      botResponses.forEach((bubble) => {
+        bubble.innerHTML = formatBotResponse(bubble.innerHTML);
+      });
+    });
+  </script>
+</html>

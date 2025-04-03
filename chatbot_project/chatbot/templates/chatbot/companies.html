@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+      :root {
+        --primary-color: #3d1472;
+      }
+      
+      body {
+        background-color: #f8f9fa;
+      }
+      
+      .wrapper {
+        display: flex;
+      }
+      
+      #sidebar {
+        min-width: 280px;
+        max-width: 280px;
+        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+      }
+      
+      .content {
+        flex: 1;
+        margin-left: 280px;
+        width: calc(100% - 280px);
+      }
+      
+      .company-list-item {
+        transition: all 0.3s ease;
+      }
+      .company-list-item:hover {
+        transform: translateX(10px);
+        background-color: #f8f9fa;
+      }
+      .bg-primary {
+        background-color: var(--primary-color) !important;
+      }
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      
+      .nav-link {
+        border-radius: 5px;
+        margin-bottom: 5px;
+      }
+      .nav-link:hover {
+        background-color: #f8f9fa;
+      }
+      .nav-link.active {
+        background-color: var(--primary-color) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      {% include 'chatbot/include/sidebar.html' %}
+
+      <div class="content">
+        <div class="container py-5">
+          <h2 class="mb-4">All Companies</h2>
+          <table class="table table-bordered table-hover">
+            <thead class="table-primary">
+              <tr>
+                <th>Company Name</th>
+                <th>Total Users (Sessions)</th>
+                <th>Total Messages</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for company in companies %}
+                <tr onclick="window.location.href='{% url 'company_sessions' company.id %}'" style="cursor: pointer;">
+                  <td>{{ company.name }}</td>
+                  <td>{{ company.total_sessions }}</td>
+                  <td>{{ company.total_messages }}</td>
+                  <td>
+                    <a href="{% url 'home' company.name %}" class="btn btn-sm btn-primary">View Chatbot</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No companies found</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% include 'chatbot/include/sellmate-agent.html' %}
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

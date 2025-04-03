@@ -1,0 +1,459 @@
+<style>
+    :root {
+        --primary-color: #3d1472;
+        --sidebar-width: 280px;
+        --agent-width: 400px;
+    }
+    
+    body {
+        background-color: #f8f9fa;
+        overflow-x: hidden;
+    }
+
+    .wrapper {
+        display: flex;
+        width: 100%;
+    }
+
+    #sidebar {
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+    }
+
+    .content {
+        margin-left: var(--sidebar-width);
+        margin-right: var(--agent-width);
+        flex: 1;
+        padding: 2rem;
+        transition: margin-right 0.3s ease;
+    }
+
+    /* Sellmate Agent Styles */
+    .sellmate-agent {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: var(--agent-width);
+        height: 100vh;
+        background: white;
+        border-left: 1px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        z-index: 99;
+    }
+
+    .agent-resize-handle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        cursor: ew-resize;
+        background: #dee2e6;
+    }
+
+    .agent-resize-handle:hover {
+        background: var(--primary-color);
+    }
+
+    .agent-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .agent-header {
+        padding: 1rem;
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .agent-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        position: relative;
+    }
+
+    .agent-input {
+        padding: 1rem;
+        border-top: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .agent-input form {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .agent-input input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    .agent-input input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(61, 20, 114, 0.1);
+    }
+
+    .agent-input button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+    .agent-input button:hover {
+        background-color: #2b0f52;
+    }
+
+    .agent-input button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .agent-message {
+        margin-bottom: 1rem;
+        max-width: 70%;
+        clear: both;
+    }
+
+    .agent-message.bot {
+        float: left;
+    }
+
+    .agent-message.user {
+        float: right;
+    }
+
+    .agent-message .agent-bubble {
+        padding: 1rem;
+        border-radius: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .agent-message.bot .agent-bubble {
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 15px 15px 15px 0;
+    }
+
+    .agent-message.user .agent-bubble {
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 15px 15px 0 15px;
+    }
+
+    .typing-indicator {
+        display: none;
+        position: absolute;
+        bottom: 100px; /* Adjust based on your input container height */
+        left: 20px;
+        margin: 0;
+        text-align: left;
+        z-index: 1;
+    }
+    
+    .typing-indicator .bubble {
+        display: inline-block;
+        background-color: #f1f1f1;
+        border-radius: 10px;
+        padding: 5px 10px;
+        position: relative;
+    }
+    
+    .typing-indicator .dots {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 20px;
+        margin: 0 auto;
+    }
+    
+    .typing-indicator .dot {
+        width: 5px;
+        height: 5px;
+        background-color: #999;
+        border-radius: 50%;
+        animation: blink 1.5s infinite;
+    }
+    
+    .typing-indicator .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes blink {
+        0%, 80%, 100% {
+            opacity: 0;
+        }
+        40% {
+            opacity: 1;
+        }
+    }
+</style>
+<div class="sellmate-agent">
+    <div class="agent-resize-handle"></div>
+    <div class="agent-container">
+        <div class="agent-header">
+            <h4 class="mb-0">SellMate Agent</h4>
+        </div>
+        <div class="agent-messages" id="agentMessages">
+            <!-- Chat messages will be displayed here -->
+        </div>
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="bubble">
+                <div class="dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        <div class="agent-input">
+            <form id="agentForm" onsubmit="return sendAgentMessage(event)">
+                {% csrf_token %}
+                <input 
+                    type="text" 
+                    id="agentInput" 
+                    placeholder="Type your message..." 
+                    required
+                    autocomplete="off"
+                >
+                <button type="submit" id="sendButton">
+                    Submit
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const agent = document.querySelector('.sellmate-agent');
+    const resizeHandle = document.querySelector('.agent-resize-handle');
+    const content = document.querySelector('.content');
+    let isResizing = false;
+
+    resizeHandle.addEventListener('mousedown', startResizing);
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResizing);
+
+    function startResizing(e) {
+        isResizing = true;
+        document.body.style.cursor = 'ew-resize';
+    }
+
+    function resize(e) {
+        if (!isResizing) return;
+
+        const windowWidth = window.innerWidth;
+        const sidebarWidth = 280;
+        const minWidth = 250;
+        const maxWidth = 600;
+        
+        let newWidth = windowWidth - e.clientX;
+        
+        // Apply constraints
+        if (newWidth < minWidth) newWidth = minWidth;
+        if (newWidth > maxWidth) newWidth = maxWidth;
+
+        // Update agent width
+        agent.style.width = `${newWidth}px`;
+        document.documentElement.style.setProperty('--agent-width', `${newWidth}px`);
+        
+        // Update content margin
+        if (content) {
+            content.style.marginRight = `${newWidth}px`;
+        }
+    }
+
+    function stopResizing() {
+        isResizing = false;
+        document.body.style.cursor = 'default';
+    }
+
+    async function sendAgentMessage(event) {
+        event.preventDefault(); // Prevent form submission
+        
+        const userInput = document.getElementById('agentInput').value.trim();
+        const sendButton = document.getElementById('sendButton');
+        
+        if (!userInput) return false;
+
+        // Disable input and button while processing
+        const inputField = document.getElementById('agentInput');
+        inputField.disabled = true;
+        sendButton.disabled = true;
+
+        const messagesDiv = document.getElementById('agentMessages');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        try {
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'agent-message user';
+            userMessage.innerHTML = `<div class="agent-bubble">${userInput}</div>`;
+            messagesDiv.appendChild(userMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+
+            // Clear input field
+            inputField.value = '';
+
+            const response = await fetch('/sellmate-agent-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ message: userInput })
+            });
+
+            const data = await response.json();
+
+            // Hide typing indicator
+            typingIndicator.style.display = 'none';
+
+            if (data.response) {
+                try {
+                    // Check if response contains JSON structure
+                    let jsonMatch = data.response.match(/```json\s*({[\s\S]*?})\s*```/);
+                    
+                    if (jsonMatch) {
+                        const companyData = JSON.parse(jsonMatch[1]);
+                        
+                        if (companyData.company_name && companyData.company_info) {
+                            // Show processing message
+                            const processingMessage = document.createElement('div');
+                            processingMessage.className = 'agent-message bot';
+                            processingMessage.innerHTML = `<div class="agent-bubble">Creating company, please wait...</div>`;
+                            messagesDiv.appendChild(processingMessage);
+                            
+                            // Send company data to save-company endpoint
+                            const saveResponse = await fetch('/save-company/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken'),
+                                },
+                                body: JSON.stringify({
+                                    name: companyData.company_name,
+                                    information: companyData.company_info
+                                })
+                            });
+
+                            const saveResult = await saveResponse.json();
+                            
+                            // Remove processing message
+                            messagesDiv.removeChild(processingMessage);
+                            
+                            // Show result message
+                            const botMessage = document.createElement('div');
+                            botMessage.className = 'agent-message bot';
+                            
+                            if (saveResponse.ok) {
+                                botMessage.innerHTML = `<div class="agent-bubble">
+                                    ✅ Company "${companyData.company_name}" has been successfully created!<br><br>
+                                    You can now access your chatbot at: <a href="/${companyData.company_name}/" target="_blank">/${companyData.company_name}/</a>
+                                </div>`;
+                            } else {
+                                botMessage.innerHTML = `<div class="agent-bubble">
+                                    ❌ Failed to create company: ${saveResult.message}
+                                </div>`;
+                            }
+                            messagesDiv.appendChild(botMessage);
+                        }
+                    } else {
+                        // Regular chat message
+                        const botMessage = document.createElement('div');
+                        botMessage.className = 'agent-message bot';
+                        botMessage.innerHTML = `<div class="agent-bubble">${formatBotResponse(data.response)}</div>`;
+                        messagesDiv.appendChild(botMessage);
+                    }
+                } catch (error) {
+                    console.error('Error processing response:', error);
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'agent-message bot';
+                    botMessage.innerHTML = `<div class="agent-bubble">${formatBotResponse(data.response)}</div>`;
+                    messagesDiv.appendChild(botMessage);
+                }
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            typingIndicator.style.display = 'none';
+            
+            // Show error message
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'agent-message bot';
+            errorMessage.innerHTML = `<div class="agent-bubble error">Sorry, I encountered an error. Please try again.</div>`;
+            messagesDiv.appendChild(errorMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        } finally {
+            // Re-enable input and button
+            inputField.disabled = false;
+            sendButton.disabled = false;
+            inputField.focus();
+        }
+
+        return false; // Prevent form submission
+    }
+
+    function formatBotResponse(response) {
+        response = response.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        response = response.replace(/^\* /gm, '• ');
+        response = response.replace(/^- /gm, '• ');
+        response = response.replace(/•\s/g, '<br>• ');
+        response = response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        response = response.replace(/\*(?!\*)(.*?)\*/g, '<em>$1</em>');
+        response = response.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        });
+        return response;
+    }
+
+    // CSRF token helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Add event listener for Enter key
+    document.getElementById('agentInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('agentForm').dispatchEvent(new Event('submit'));
+        }
+    });
+</script>

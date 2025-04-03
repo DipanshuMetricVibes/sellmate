@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+      :root {
+        --primary-color: #3d1472;
+      }
+      
+      body {
+        background-color: #f8f9fa;
+      }
+      
+      .wrapper {
+        display: flex;
+      }
+      
+      #sidebar {
+        min-width: 280px;
+        max-width: 280px;
+        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+      }
+      
+      .content {
+        flex: 1;
+        margin-left: 280px;
+        width: calc(100% - 280px);
+      }
+      
+      .nav-link {
+        border-radius: 5px;
+        margin-bottom: 5px;
+      }
+      .nav-link:hover {
+        background-color: #f8f9fa;
+      }
+      .nav-link.active {
+        background-color: var(--primary-color) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      {% include 'chatbot/include/sidebar.html' %}
+
+      <div class="content">
+        <div class="container py-5">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Total Companies</h5>
+                  <h2 class="card-text">{{ companies.count }}</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Total Sessions</h5>
+                  <h2 class="card-text">{{ total_sessions }}</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Total Messages</h5>
+                  <h2 class="card-text">{{ total_messages }}</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card shadow-sm mt-4">
+            <div class="card-body">
+              <h3 class="card-title mb-4">Recent Companies</h3>
+              <div class="list-group">
+                {% for company in companies|slice:':5' %}
+                  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span>{{ company.name }}</span>
+                    <a href="{% url 'company_sessions' company.id %}" class="btn btn-sm btn-primary">View Sessions</a>
+                  </div>
+                {% empty %}
+                  <div class="text-center text-muted p-3">No companies found</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% include 'chatbot/include/sellmate-agent.html' %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
