@@ -9,6 +9,8 @@ from django.db.models import Max
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+
+
 # from corsheaders.decorators import cors_exempt
 
 logger = logging.getLogger(__name__)
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 # Initialize the Vertex AI client
+# genai.configure()
 client = genai.Client(
     vertexai=True,
     project="metricvibes-1718777660306",
